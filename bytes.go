@@ -126,11 +126,6 @@ func (b *BytesReader) ReadIPv6() netip.Addr {
 
 type BytesWriter []byte
 
-func NewBytesWriter(buf []byte) *BytesWriter {
-	b := BytesWriter(buf)
-	return &b
-}
-
 func (b *BytesWriter) Len() int {
 	return len(*b)
 }

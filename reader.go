@@ -209,6 +209,10 @@ func (p *Reader) Reset(reader io.Reader) {
 	p.err = nil
 }
 
+func (p *Reader) Buffered() int {
+	return p.r.Buffered()
+}
+
 func New(reader io.Reader) *Reader {
 	return &Reader{
 		r: bufio.NewReader(reader),

@@ -44,7 +44,7 @@ func getSocks5Addr(addr string) []byte {
 
 	p, _ := strconv.Atoi(port)
 
-	buf := NewBytesWriter(make([]byte, 0, 1+1+255+2))
+	buf := BytesWriter(make([]byte, 0, 1+1+255+2))
 	switch {
 	case !ip.IsValid():
 		buf.PutUint8(3)
