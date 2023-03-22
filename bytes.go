@@ -240,6 +240,10 @@ func (b *BytesWriter) PutSlice(p []byte) {
 	copy(b.next(len(p)), p)
 }
 
+func (b *BytesWriter) PutString(s string) {
+	copy(b.next(len(s)), s)
+}
+
 func (b *BytesWriter) LimitRead(reader io.Reader, n int) error {
 	_, err := io.ReadFull(reader, b.next(n))
 	return err
