@@ -1,4 +1,4 @@
-module protobytes
+module github.com/Dreamacro/protobytes
 
 go 1.20
 
