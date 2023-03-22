@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"net/netip"
+	"unicode/utf8"
 )
 
 const (
@@ -242,6 +243,19 @@ func (b *BytesWriter) PutSlice(p []byte) {
 
 func (b *BytesWriter) PutString(s string) {
 	copy(b.next(len(s)), s)
+}
+
+func (b *BytesWriter) PutRune(r rune) {
+	// Compare as uint32 to correctly handle negative runes.
+	if uint32(r) < utf8.RuneSelf {
+		b.PutUint8(byte(r))
+		return
+	}
+	m, ok := b.tryGrowByReslice(utf8.UTFMax)
+	if !ok {
+		m = b.grow(utf8.UTFMax)
+	}
+	*b = utf8.AppendRune((*b)[:m], r)
 }
 
 func (b *BytesWriter) LimitRead(reader io.Reader, n int) (int, error) {
