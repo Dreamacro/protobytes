@@ -89,6 +89,18 @@ func TestBytesReader(t *testing.T) {
 	assert.Equal(t, b.IsEmpty(), true)
 }
 
+func TestBytesWriter(t *testing.T) {
+	b := BytesWriter{}
+
+	r := bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
+	b.LimitRead(r, 4)
+	assert.Equal(t, b.Len(), 3)
+
+	r = bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
+	b.LimitRead(r, 2)
+	assert.Equal(t, b.Len(), 5)
+}
+
 func readAddrStd(b []byte) (*Header, error) {
 	if len(b) < 16 {
 		return nil, errors.New("short buffer")

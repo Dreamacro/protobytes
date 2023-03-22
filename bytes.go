@@ -244,9 +244,19 @@ func (b *BytesWriter) PutString(s string) {
 	copy(b.next(len(s)), s)
 }
 
-func (b *BytesWriter) LimitRead(reader io.Reader, n int) error {
-	_, err := io.ReadFull(reader, b.next(n))
-	return err
+func (b *BytesWriter) LimitRead(reader io.Reader, n int) (int, error) {
+	length := b.Len()
+	n, err := reader.Read(b.next(n))
+	if n < len(*b) {
+		*b = (*b)[:length+n]
+	}
+	return n, err
+}
+
+func (b *BytesWriter) Write(p []byte) (n int, err error) {
+	n = len(p)
+	b.PutSlice(p)
+	return
 }
 
 func (b *BytesWriter) Bytes() []byte {
