@@ -23,6 +23,11 @@ func (b *BytesReader) Len() int {
 	return len(*b)
 }
 
+// Cap returns the capacity of the byte slice.
+func (b *BytesReader) Cap() int {
+	return cap(*b)
+}
+
 // IsEmpty checks if the byte slice is empty.
 func (b *BytesReader) IsEmpty() bool {
 	return b.Len() == 0
@@ -99,16 +104,37 @@ func (b *BytesReader) ReadUint64le() uint64 {
 	return r
 }
 
+// ReadUvarint read Uvarint from the byte slice.
+// it return error because of the length of the byte slice can't be sure.
+func (b *BytesReader) ReadUvarint() (uint64, error) {
+	return binary.ReadUvarint(b)
+}
+
+// ReadVarint read Varint from the byte slice.
+// it return error because of the length of the byte slice can't be sure.
+func (b *BytesReader) ReadVarint() (int64, error) {
+	return binary.ReadVarint(b)
+}
+
 // Skip skips the given number of bytes.
 func (b *BytesReader) Skip(n int) {
 	*b = (*b)[n:]
 }
 
 // Read reads up to len(p) bytes from the byte slice and skips len(p) bytes.
-func (b *BytesReader) Read(p []byte) (n int) {
+// implements io.Reader
+func (b *BytesReader) Read(p []byte) (n int, err error) {
 	n = copy(p, *b)
 	*b = (*b)[n:]
 	return
+}
+
+// ReadByte implements io.ByteReader.
+func (b *BytesReader) ReadByte() (byte, error) {
+	if b.Len() == 0 {
+		return 0, io.EOF
+	}
+	return b.ReadUint8(), nil
 }
 
 // ReadIPv4 reads a net.IPAddr with an IPv4 address.
@@ -129,6 +155,11 @@ type BytesWriter []byte
 
 func (b *BytesWriter) Len() int {
 	return len(*b)
+}
+
+// Cap returns the capacity of the byte slice.
+func (b *BytesWriter) Cap() int {
+	return cap(*b)
 }
 
 // modify from bytes.Buffer
@@ -235,6 +266,28 @@ func (b *BytesWriter) PutUint32le(v uint32) {
 
 func (b *BytesWriter) PutUint64le(v uint64) {
 	binary.LittleEndian.PutUint64(b.next(8), v)
+}
+
+func (b *BytesWriter) PutUvarint(v uint64) {
+	n := binary.MaxVarintLen64
+	m, ok := b.tryGrowByReslice(n)
+	if !ok {
+		m = b.grow(n)
+	}
+
+	n = binary.PutUvarint((*b)[m:], v)
+	*b = (*b)[:m+n]
+}
+
+func (b *BytesWriter) PutVarint(v int64) {
+	n := binary.MaxVarintLen64
+	m, ok := b.tryGrowByReslice(n)
+	if !ok {
+		m = b.grow(n)
+	}
+
+	n = binary.PutVarint((*b)[m:], v)
+	*b = (*b)[:m+n]
 }
 
 func (b *BytesWriter) PutSlice(p []byte) {

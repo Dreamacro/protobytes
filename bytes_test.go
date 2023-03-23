@@ -71,7 +71,7 @@ func TestBytesReader(t *testing.T) {
 
 	// test Read
 	buf := make([]byte, 4)
-	n := b.Read(buf)
+	n, _ := b.Read(buf)
 	assert.Equal(t, n, 3)
 	assert.Equal(t, buf[:n], []byte{0x78, 0x9a, 0xbc})
 	assert.Equal(t, b.IsEmpty(), true)
