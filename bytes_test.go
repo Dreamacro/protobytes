@@ -93,11 +93,11 @@ func TestBytesWriter(t *testing.T) {
 	b := BytesWriter{}
 
 	r := bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
-	b.LimitRead(r, 4)
+	b.ReadLimit(r, 4)
 	assert.Equal(t, b.Len(), 3)
 
 	r = bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
-	b.LimitRead(r, 2)
+	b.ReadLimit(r, 2)
 	assert.Equal(t, b.Len(), 5)
 }
 

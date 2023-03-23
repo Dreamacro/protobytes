@@ -311,7 +311,7 @@ func (b *BytesWriter) PutRune(r rune) {
 	*b = utf8.AppendRune((*b)[:m], r)
 }
 
-func (b *BytesWriter) LimitRead(reader io.Reader, n int) (int, error) {
+func (b *BytesWriter) ReadLimit(reader io.Reader, n int) (int, error) {
 	length := b.Len()
 	n, err := reader.Read(b.next(n))
 	if n < len(*b) {

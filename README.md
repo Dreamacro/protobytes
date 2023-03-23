@@ -10,6 +10,21 @@ When using `bytes.Buffer`, `binary.Write` has poor performance and unnecessary a
 
 ## Usage
 
+`BytesReader` and `BytesWriter` are similar to `bytes.Buffer`, but they are not thread-safe. `bytes.Buffer`, `binary.Write` and `[]byte` conversion is very easy and cheap.
+
+```go
+buf := make([]byte, 0, 1024)
+w := BytesWriter(buf)
+w.ReadLimit(rand.Reader, 64)
+w.PutUint8(0x01)
+w.PutUint16be(0x0203)
+
+r := BytesReader(w.Bytes())
+randomBytes, r := r.SplitAt(64) // split to two BytesReader
+r.ReadUint8() // auto step forward
+r.ReadUint16be()
+```
+
 example for parse proxy protocol v2 using `BytesReader`:
 
 ```go
