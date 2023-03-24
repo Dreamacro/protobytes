@@ -15,7 +15,7 @@ When using `bytes.Buffer`, `binary.Write` has poor performance and unnecessary a
 ```go
 buf := make([]byte, 0, 1024)
 w := BytesWriter(buf)
-w.ReadLimit(rand.Reader, 64)
+w.ReadFull(rand.Reader, 64)
 w.PutUint8(0x01)
 w.PutUint16be(0x0203)
 

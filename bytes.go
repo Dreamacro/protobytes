@@ -228,19 +228,23 @@ func (b *BytesWriter) grow(n int) int {
 	return m
 }
 
-func (b *BytesWriter) next(n int) []byte {
+// Grow grows the buffer's capacity. It returns the index where bytes
+// should be written.
+func (b *BytesWriter) Grow(n int) int {
 	m, ok := b.tryGrowByReslice(n)
 	if !ok {
 		m = b.grow(n)
 	}
+	return m
+}
+
+func (b *BytesWriter) next(n int) []byte {
+	m := b.Grow(n)
 	return (*b)[m : m+n]
 }
 
 func (b *BytesWriter) PutUint8(v uint8) {
-	m, ok := b.tryGrowByReslice(1)
-	if !ok {
-		m = b.grow(1)
-	}
+	m := b.Grow(1)
 	(*b)[m] = v
 }
 
@@ -270,10 +274,7 @@ func (b *BytesWriter) PutUint64le(v uint64) {
 
 func (b *BytesWriter) PutUvarint(v uint64) {
 	n := binary.MaxVarintLen64
-	m, ok := b.tryGrowByReslice(n)
-	if !ok {
-		m = b.grow(n)
-	}
+	m := b.Grow(n)
 
 	n = binary.PutUvarint((*b)[m:], v)
 	*b = (*b)[:m+n]
@@ -281,10 +282,7 @@ func (b *BytesWriter) PutUvarint(v uint64) {
 
 func (b *BytesWriter) PutVarint(v int64) {
 	n := binary.MaxVarintLen64
-	m, ok := b.tryGrowByReslice(n)
-	if !ok {
-		m = b.grow(n)
-	}
+	m := b.Grow(n)
 
 	n = binary.PutVarint((*b)[m:], v)
 	*b = (*b)[:m+n]
@@ -304,20 +302,23 @@ func (b *BytesWriter) PutRune(r rune) {
 		b.PutUint8(byte(r))
 		return
 	}
-	m, ok := b.tryGrowByReslice(utf8.UTFMax)
-	if !ok {
-		m = b.grow(utf8.UTFMax)
-	}
+	m := b.Grow(utf8.UTFMax)
 	*b = utf8.AppendRune((*b)[:m], r)
 }
 
-func (b *BytesWriter) ReadLimit(reader io.Reader, n int) (int, error) {
+func (b *BytesWriter) ReadFull(reader io.Reader, n int) error {
 	length := b.Len()
-	n, err := reader.Read(b.next(n))
-	if n < len(*b) {
-		*b = (*b)[:length+n]
+	n, err := io.ReadFull(reader, b.next(n))
+	if err != nil {
+		*b = (*b)[:length]
 	}
-	return n, err
+	return err
+}
+
+func (b *BytesWriter) Slice(start, end int) BytesWriter {
+	w := (*b)[start:end]
+	w.Reset()
+	return w
 }
 
 func (b *BytesWriter) Write(p []byte) (n int, err error) {

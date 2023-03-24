@@ -16,7 +16,8 @@ func TestBytesReader(t *testing.T) {
 	var b BytesReader = []byte{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0}
 
 	// test Len and IsEmpty
-	assert.Equal(t, b.Len(), 8)
+	assert.Equal(t, 0, b.Len())
+	assert.Equal(t, 8, b.Cap())
 	assert.False(t, b.IsEmpty())
 
 	// test SplitAt
@@ -36,33 +37,33 @@ func TestBytesReader(t *testing.T) {
 	b = []byte{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde}
 
 	// test ReadUint8
-	assert.Equal(t, b.ReadUint8(), uint8(0x12))
-	assert.Equal(t, b.Len(), 14)
+	assert.Equal(t, uint8(0x12), b.ReadUint8())
+	assert.Equal(t, 14, b.Len())
 
 	// test ReadUint16be
-	assert.Equal(t, b.ReadUint16be(), binary.BigEndian.Uint16([]byte{0x34, 0x56}))
-	assert.Equal(t, b.Len(), 12)
+	assert.Equal(t, binary.BigEndian.Uint16([]byte{0x34, 0x56}), b.ReadUint16be())
+	assert.Equal(t, 12, b.Len())
 
 	// test ReadUint32be
-	assert.Equal(t, b.ReadUint32be(), binary.BigEndian.Uint32([]byte{0x78, 0x9a, 0xbc, 0xde}))
-	assert.Equal(t, b.Len(), 8)
+	assert.Equal(t, binary.BigEndian.Uint32([]byte{0x78, 0x9a, 0xbc, 0xde}), b.ReadUint32be())
+	assert.Equal(t, 8, b.Len())
 
 	// test ReadUint64be
-	assert.Equal(t, b.ReadUint64be(), binary.BigEndian.Uint64([]byte{0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde}))
-	assert.Equal(t, b.IsEmpty(), true)
+	assert.Equal(t, binary.BigEndian.Uint64([]byte{0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde}), b.ReadUint64be())
+	assert.True(t, b.IsEmpty())
 
 	// test ReadUint16le
 	b = []byte{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}
-	assert.Equal(t, b.ReadUint16le(), binary.LittleEndian.Uint16([]byte{0x12, 0x34}))
-	assert.Equal(t, b.Len(), 12)
+	assert.Equal(t, binary.LittleEndian.Uint16([]byte{0x12, 0x34}), b.ReadUint16le())
+	assert.Equal(t, 12, b.Len())
 
 	// test ReadUint32le
-	assert.Equal(t, b.ReadUint32le(), binary.LittleEndian.Uint32([]byte{0x56, 0x78, 0x9a, 0xbc}))
-	assert.Equal(t, b.Len(), 8)
+	assert.Equal(t, binary.LittleEndian.Uint32([]byte{0x56, 0x78, 0x9a, 0xbc}), b.ReadUint32le())
+	assert.Equal(t, 8, b.Len())
 
 	// test ReadUint64le
-	assert.Equal(t, b.ReadUint64le(), binary.LittleEndian.Uint64([]byte{0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}))
-	assert.Equal(t, b.IsEmpty(), true)
+	assert.Equal(t, binary.LittleEndian.Uint64([]byte{0xde, 0xf0, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}), b.ReadUint64le())
+	assert.True(t, b.IsEmpty())
 
 	// test Skip
 	b = []byte{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}
@@ -72,33 +73,40 @@ func TestBytesReader(t *testing.T) {
 	// test Read
 	buf := make([]byte, 4)
 	n, _ := b.Read(buf)
-	assert.Equal(t, n, 3)
-	assert.Equal(t, buf[:n], []byte{0x78, 0x9a, 0xbc})
-	assert.Equal(t, b.IsEmpty(), true)
+	assert.Equal(t, 3, n)
+	assert.Equal(t, []byte{0x78, 0x9a, 0xbc}, buf[:n])
+	assert.True(t, b.IsEmpty())
 
 	// test ReadIPv4
 	b = []byte{192, 168, 0, 1}
 	ip := b.ReadIPv4()
-	assert.Equal(t, ip, netip.MustParseAddr("192.168.0.1"))
-	assert.Equal(t, b.IsEmpty(), true)
+	assert.Equal(t, netip.MustParseAddr("192.168.0.1"), ip)
+	assert.True(t, b.IsEmpty())
 
 	// test ReadIPv6
 	b = []byte{0x20, 0x01, 0x0d, 0xb8, 0x85, 0xa3, 0x08, 0xd3, 0x13, 0x19, 0x82, 0x00, 0x90, 0x27, 0x73, 0x42}
 	ip = b.ReadIPv6()
-	assert.Equal(t, ip, netip.MustParseAddr("2001:db8:85a3:8d3:1319:8200:9027:7342"))
-	assert.Equal(t, b.IsEmpty(), true)
+	assert.Equal(t, netip.MustParseAddr("2001:db8:85a3:8d3:1319:8200:9027:7342"), ip)
+	assert.True(t, b.IsEmpty())
 }
 
 func TestBytesWriter(t *testing.T) {
 	b := BytesWriter{}
 
 	r := bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
-	b.ReadLimit(r, 4)
-	assert.Equal(t, b.Len(), 3)
+	err := b.ReadFull(r, 4)
+	assert.Error(t, err)
+	assert.Equal(t, 0, b.Len())
 
 	r = bytes.NewBuffer([]byte{0x12, 0x34, 0x56})
-	b.ReadLimit(r, 2)
-	assert.Equal(t, b.Len(), 5)
+	err = b.ReadFull(r, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, b.Len())
+
+	assert.Equal(t, BytesWriter([]byte{0x12, 0x34}), b[:2])
+	tmp := b.Slice(0, 2)
+	tmp.PutSlice([]byte{0x78, 0x9a})
+	assert.Equal(t, BytesWriter([]byte{0x78, 0x9a}), b[:2])
 }
 
 func readAddrStd(b []byte) (*Header, error) {
