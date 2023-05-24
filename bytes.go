@@ -122,8 +122,16 @@ func (b *BytesReader) Skip(n int) {
 }
 
 // Read reads up to len(p) bytes from the byte slice and skips len(p) bytes.
-// implements io.Reader
+// implements io.Reader. If the buffer has no data to return, err is
+// io.EOF (unless len(p) is zero); otherwise it is nil.
 func (b *BytesReader) Read(p []byte) (n int, err error) {
+	if b.IsEmpty() {
+		if len(p) == 0 {
+			return 0, nil
+		}
+		return 0, io.EOF
+	}
+
 	n = copy(p, *b)
 	*b = (*b)[n:]
 	return
