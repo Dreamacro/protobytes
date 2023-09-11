@@ -16,7 +16,7 @@ func TestBytesReader(t *testing.T) {
 	var b BytesReader = []byte{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0}
 
 	// test Len and IsEmpty
-	assert.Equal(t, 0, b.Len())
+	assert.Equal(t, 8, b.Len())
 	assert.Equal(t, 8, b.Cap())
 	assert.False(t, b.IsEmpty())
 
