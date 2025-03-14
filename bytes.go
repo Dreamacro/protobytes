@@ -215,7 +215,6 @@ func growSlice(b []byte, n int) []byte {
 // It returns the index where bytes should be written.
 // If the buffer can't grow it will panic with ErrTooLarge.
 func (b *BytesWriter) grow(n int) int {
-	m := b.Len()
 	// Try to grow by means of a reslice.
 	if i, ok := b.tryGrowByReslice(n); ok {
 		return i
@@ -224,6 +223,7 @@ func (b *BytesWriter) grow(n int) int {
 		*b = make([]byte, n, smallBufferSize)
 		return 0
 	}
+	m := b.Len()
 	c := cap(*b)
 	if c > maxInt-c-n {
 		panic(bytes.ErrTooLarge)
@@ -239,11 +239,7 @@ func (b *BytesWriter) grow(n int) int {
 // Grow grows the buffer's capacity. It returns the index where bytes
 // should be written.
 func (b *BytesWriter) Grow(n int) int {
-	m, ok := b.tryGrowByReslice(n)
-	if !ok {
-		m = b.grow(n)
-	}
-	return m
+	return b.grow(n)
 }
 
 func (b *BytesWriter) next(n int) []byte {

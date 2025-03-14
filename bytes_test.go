@@ -107,6 +107,17 @@ func TestBytesWriter(t *testing.T) {
 	tmp := b.Slice(0, 2)
 	tmp.PutSlice([]byte{0x78, 0x9a})
 	assert.Equal(t, BytesWriter([]byte{0x78, 0x9a}), b[:2])
+
+	b = BytesWriter{}
+	n := b.Grow(3)
+	assert.Equal(t, 0, n)
+	assert.Equal(t, 3, b.Len())
+	assert.Equal(t, 8, b.Cap())
+	b.PutUint8(0x12)
+	assert.Equal(t, []byte{0, 0, 0, 0x12}, b.Bytes())
+	n = b.Grow(1)
+	assert.Equal(t, 4, n)
+	assert.Equal(t, 5, b.Len())
 }
 
 func readAddrStd(b []byte) (*Header, error) {
