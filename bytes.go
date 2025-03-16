@@ -310,9 +310,37 @@ func (b *BytesWriter) PutRune(r rune) {
 	*b = utf8.AppendRune((*b)[:m], r)
 }
 
+type appender interface {
+	AppendTo([]byte) []byte
+}
+
+func (b *BytesWriter) PutAppender(p appender) {
+	*b = p.AppendTo(*b)
+}
+
+// binaryAppender compatible [encoding.BinaryAppender] before go 1.24
+type binaryAppender interface {
+	AppendBinary(b []byte) ([]byte, error)
+}
+
+func (b *BytesWriter) PutBinaryAppender(p binaryAppender) (err error) {
+	*b, err = p.AppendBinary(*b)
+	return err
+}
+
+// textAppender compatible [encoding.TextAppender] before go 1.24
+type textAppender interface {
+	AppendText(b []byte) ([]byte, error)
+}
+
+func (b *BytesWriter) PutTextAppender(p textAppender) (err error) {
+	*b, err = p.AppendText(*b)
+	return err
+}
+
 func (b *BytesWriter) ReadFull(reader io.Reader, n int) error {
 	length := b.Len()
-	n, err := io.ReadFull(reader, b.next(n))
+	_, err := io.ReadFull(reader, b.next(n))
 	if err != nil {
 		*b = (*b)[:length]
 	}

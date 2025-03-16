@@ -118,6 +118,19 @@ func TestBytesWriter(t *testing.T) {
 	n = b.Grow(1)
 	assert.Equal(t, 4, n)
 	assert.Equal(t, 5, b.Len())
+
+	b = BytesWriter{}
+	ip := netip.MustParseAddr("127.0.0.1")
+	b.PutAppender(ip)
+	assert.Equal(t, []byte("127.0.0.1"), b.Bytes())
+	b.Reset()
+	err = b.PutBinaryAppender(ip)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte{127, 0, 0, 1}, b.Bytes())
+	b.Reset()
+	err = b.PutTextAppender(ip)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("127.0.0.1"), b.Bytes())
 }
 
 func readAddrStd(b []byte) (*Header, error) {
