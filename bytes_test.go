@@ -120,6 +120,12 @@ func TestBytesWriter(t *testing.T) {
 	assert.Equal(t, 5, b.Len())
 
 	b = BytesWriter{}
+	tmp = b.Extend(3)
+	tmp[0] = 0x12
+	tmp[1] = 0x34
+	assert.Equal(t, []byte{0x12, 0x34, 0}, b.Bytes())
+
+	b = BytesWriter{}
 	ip := netip.MustParseAddr("127.0.0.1")
 	b.PutAppender(ip)
 	assert.Equal(t, []byte("127.0.0.1"), b.Bytes())

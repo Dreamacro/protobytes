@@ -247,6 +247,11 @@ func (b *BytesWriter) next(n int) []byte {
 	return (*b)[m : m+n]
 }
 
+// Extend extends the buffer's capacity and returns a slice of n bytes.
+func (b *BytesWriter) Extend(n int) []byte {
+	return b.next(n)
+}
+
 func (b *BytesWriter) PutUint8(v uint8) {
 	m := b.Grow(1)
 	(*b)[m] = v
